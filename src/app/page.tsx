@@ -8,6 +8,12 @@ import { FileList } from '@/components/features/files/file-list';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 import { AiChat } from '@/components/features/ai/ai-chat';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -33,17 +39,29 @@ export default function Home() {
         <div className="absolute bottom-0 left-[-20%] right-[-20%] top-[-10%] h-[500px] w-[500px] rounded-full bg-gradient-to-tr from-primary/20 to-accent/20 opacity-50 blur-[120px]"></div>
         <div className="absolute bottom-[-10%] right-[20%] top-[-10%] h-[300px] w-[300px] rounded-full bg-gradient-to-tl from-accent/20 to-primary/20 opacity-40 blur-[100px]"></div>
       </div>
-      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center space-y-12">
+      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center space-y-8">
         <ClockDisplay />
 
         {user ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
-            <div className="space-y-8">
-              <FileUploader userId={user.uid} />
-              <FileList userId={user.uid} />
-            </div>
-            <AiChat />
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger className="text-xl font-semibold">إدارة الملفات</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-8 pt-4">
+                  <FileUploader userId={user.uid} />
+                  <FileList userId={user.uid} />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+              <AccordionTrigger className="text-xl font-semibold">مساعد الذكاء الاصطناعي</AccordionTrigger>
+              <AccordionContent>
+                <div className="pt-4">
+                  <AiChat />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         ) : (
           <div className="text-center">
             <p className="mb-4">
@@ -55,7 +73,7 @@ export default function Home() {
           </div>
         )}
 
-        <footer className="text-center mt-12">
+        <footer className="text-center mt-8">
           <p className="text-lg font-body text-muted-foreground" dir="rtl">
             مطور الموقع:
           </p>
