@@ -43,8 +43,7 @@ export function AiChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState<'explain' | 'solve' | 'generate' | 'summarize'>('explain');
-  const [questionDifficulty, setQuestionDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [activeTab, setActiveTab] = useState<'explain' | 'solve' | 'summarize'>('explain');
   const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -82,7 +81,6 @@ export function AiChat() {
             message: userMessageText,
             fileDataUri: fileDataUri,
             language: language,
-            ...(activeTab === 'generate' && { difficulty: questionDifficulty }),
         };
 
         const result = await chat(chatInput);
@@ -137,32 +135,14 @@ export function AiChat() {
     <Card className="w-full h-full flex flex-col bg-transparent border-none shadow-none">
       <CardContent className="flex-grow flex flex-col gap-4 p-0">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-muted/20 border border-white/10 p-1 h-auto">
+            <TabsList className="grid w-full grid-cols-3 bg-muted/20 border border-white/10 p-1 h-auto">
                 <TabsTrigger value="explain" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">شرح</TabsTrigger>
                 <TabsTrigger value="solve" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">حل سؤال</TabsTrigger>
-                <TabsTrigger value="generate" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">عمل أسئلة</TabsTrigger>
                 <TabsTrigger value="summarize" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">تلخيص</TabsTrigger>
             </TabsList>
-            <TabsContent value="generate" className="pt-4">
-                 <Label className="mb-2 block text-sm font-medium text-center text-muted-foreground">اختر مستوى صعوبة الأسئلة:</Label>
-                <RadioGroup defaultValue="medium" value={questionDifficulty} onValueChange={(value) => setQuestionDifficulty(value as any)} className="flex justify-center gap-4">
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <RadioGroupItem value="easy" id="r1" />
-                        <Label htmlFor="r1">سهل</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <RadioGroupItem value="medium" id="r2" />
-                        <Label htmlFor="r2">متوسط</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <RadioGroupItem value="hard" id="r3" />
-                        <Label htmlFor="r3">صعب</Label>
-                    </div>
-                </RadioGroup>
-            </TabsContent>
         </Tabs>
         
-        <div className="space-y-2">
+        <div className="space-y-2 pt-4">
             <Label className="text-sm font-medium text-center text-muted-foreground w-full block">لغة الرد</Label>
             <RadioGroup value={language} onValueChange={(v) => setLanguage(v as 'ar' | 'en')} className="flex justify-center gap-4">
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">

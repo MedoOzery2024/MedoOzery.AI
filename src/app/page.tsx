@@ -14,9 +14,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Bot, Files, FileText, Mic, Image as ImageIcon } from 'lucide-react';
+import { Bot, Files, FileText, Mic, Image as ImageIcon, HelpCircle } from 'lucide-react';
 import { VoiceTranscription } from '@/components/features/voice/voice-transcription';
 import { ImageToPdfConverter } from '@/components/features/pdf/image-to-pdf-converter';
+import { QuestionGenerator } from '@/components/features/ai/question-generator';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -56,7 +57,7 @@ export default function Home() {
         </div>
         <div className="lg:col-span-2 w-full space-y-6">
           {user ? (
-            <Accordion type="single" collapsible defaultValue="item-3" className="w-full space-y-6">
+            <Accordion type="single" collapsible defaultValue="item-2" className="w-full space-y-6">
               <AccordionItem value="item-1" className="border-none">
                 <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-lg transition-all duration-300 hover:border-primary/50">
                   <AccordionTrigger className="text-xl font-semibold px-6 py-4 hover:no-underline">
@@ -84,6 +85,21 @@ export default function Home() {
                   <AccordionContent>
                     <div className="pt-2 pb-6 px-6">
                       <AiChat />
+                    </div>
+                  </AccordionContent>
+                </div>
+              </AccordionItem>
+               <AccordionItem value="item-5" className="border-none">
+                <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-lg transition-all duration-300 hover:border-primary/50">
+                  <AccordionTrigger className="text-xl font-semibold px-6 py-4 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <HelpCircle className="h-6 w-6 text-primary" />
+                      <span>مولد الأسئلة</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="pt-2 pb-6 px-6">
+                      <QuestionGenerator />
                     </div>
                   </AccordionContent>
                 </div>
