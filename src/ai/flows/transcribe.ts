@@ -30,6 +30,7 @@ export type TranscribeOutput = z.infer<typeof TranscribeOutputSchema>;
 
 const SummarizeTranscribedInputSchema = z.object({
     text: z.string().describe('The text to summarize.'),
+    language: z.enum(['ar', 'en']).optional().default('ar').describe('The language for the summary.'),
 });
 export type SummarizeTranscribedInput = z.infer<typeof SummarizeTranscribedInputSchema>;
 
@@ -69,15 +70,19 @@ const summarizeFlow = ai.defineFlow(
     outputSchema: SummarizeTranscribedOutputSchema,
   },
   async (input) => {
+     const promptText = input.language === 'en'
+        ? `Summarize the following text in English. Make the summary concise and clear. Original text: \n\n${input.text}`
+        : `قم بتلخيص النص التالي باللغة العربية. اجعل الملخص موجزًا وواضحًا. النص الأصلي: \n\n${input.text}`;
+
      const { output } = await ai.generate({
-      prompt: `قم بتلخيص النص التالي باللغة العربية. اجعل الملخص موجزًا وواضحًا. النص الأصلي: \n\n${input.text}`,
+      prompt: promptText,
       output: {
         schema: SummarizeTranscribedOutputSchema
       }
     });
 
     if (!output) {
-      return { summary: 'عذراً، لم أتمكن من تلخيص النص.' };
+      return { summary: 'Sorry, I was unable to summarize the text.' };
     }
     return output;
   }

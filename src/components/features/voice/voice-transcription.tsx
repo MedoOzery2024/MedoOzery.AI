@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { transcribe, summarizeTranscribedText } from '@/ai/flows/transcribe';
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable'; // Ensure this is imported for auto-table functionality
@@ -34,6 +35,7 @@ export function VoiceTranscription() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [audioFileName, setAudioFileName] = useState('');
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -143,14 +145,14 @@ export function VoiceTranscription() {
       setIsSummarizing(true);
       setSummarizedText('');
       try {
-        const result = await summarizeTranscribedText({ text: transcribedText });
+        const result = await summarizeTranscribedText({ text: transcribedText, language });
         setSummarizedText(result.summary);
       } catch(e: any) {
         console.error(e);
         toast({
             variant: 'destructive',
-            title: 'خطأ في التلخيص',
-            description: 'فشل تلخيص النص.',
+            title: language === 'ar' ? 'خطأ في التلخيص' : 'Summarization Error',
+            description: language === 'ar' ? 'فشل تلخيص النص.' : 'Failed to summarize the text.',
         });
       } finally {
         setIsSummarizing(false);
@@ -249,6 +251,20 @@ export function VoiceTranscription() {
                 تحذير: الوصول إلى الميكروفون معطل. يرجى تفعيل الإذن في متصفحك.
             </p>
         )}
+        
+        <div className="space-y-2 pt-4">
+            <Label className="text-sm font-medium text-center text-muted-foreground w-full block">لغة التلخيص</Label>
+            <RadioGroup value={language} onValueChange={(v) => setLanguage(v as 'ar' | 'en')} className="flex justify-center gap-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="ar" id="lang-ar-voice" />
+                    <Label htmlFor="lang-ar-voice">العربية</Label>
+                </div>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="en" id="lang-en-voice" />
+                    <Label htmlFor="lang-en-voice">English</Label>
+                </div>
+            </RadioGroup>
+        </div>
 
         <div className="space-y-2">
             <Label htmlFor="transcribed-text">النص المستخرج</Label>
@@ -259,6 +275,7 @@ export function VoiceTranscription() {
                     value={transcribedText}
                     onChange={(e) => setTranscribedText(e.target.value)}
                     className="h-40 bg-background/50"
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
                 />
                 {isTranscribing && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
@@ -282,6 +299,7 @@ export function VoiceTranscription() {
                     value={summarizedText}
                     readOnly
                     className="h-28 bg-background/50"
+                    dir={language === 'ar' ? 'rtl' : 'ltr'}
                 />
                 {isSummarizing && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">

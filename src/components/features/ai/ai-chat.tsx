@@ -45,6 +45,7 @@ export function AiChat() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState<'explain' | 'solve' | 'generate' | 'summarize'>('explain');
   const [questionDifficulty, setQuestionDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
@@ -80,6 +81,7 @@ export function AiChat() {
             task: activeTab,
             message: userMessageText,
             fileDataUri: fileDataUri,
+            language: language,
             ...(activeTab === 'generate' && { difficulty: questionDifficulty }),
         };
 
@@ -90,12 +92,12 @@ export function AiChat() {
 
     } catch(e: any) {
         console.error(e);
-        const errorResponse: Message = { id: (Date.now() + 1).toString(), text: 'عذراً، حدث خطأ أثناء معالجة طلبك.', sender: 'bot' };
+        const errorResponse: Message = { id: (Date.now() + 1).toString(), text: language === 'ar' ? 'عذراً، حدث خطأ أثناء معالجة طلبك.' : 'Sorry, an error occurred while processing your request.', sender: 'bot' };
         setMessages(prev => [...prev, errorResponse]);
         toast({
             variant: 'destructive',
-            title: 'حدث خطأ',
-            description: e.message || 'فشل الاتصال بمساعد الذكاء الاصطناعي.',
+            title: language === 'ar' ? 'حدث خطأ' : 'An Error Occurred',
+            description: e.message || (language === 'ar' ? 'فشل الاتصال بمساعد الذكاء الاصطناعي.' : 'Failed to connect to the AI assistant.'),
         });
     } finally {
         setIsLoading(false);
@@ -159,6 +161,20 @@ export function AiChat() {
                 </RadioGroup>
             </TabsContent>
         </Tabs>
+        
+        <div className="space-y-2">
+            <Label className="text-sm font-medium text-center text-muted-foreground w-full block">لغة الرد</Label>
+            <RadioGroup value={language} onValueChange={(v) => setLanguage(v as 'ar' | 'en')} className="flex justify-center gap-4">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="ar" id="lang-ar-ai" />
+                    <Label htmlFor="lang-ar-ai">العربية</Label>
+                </div>
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="en" id="lang-en-ai" />
+                    <Label htmlFor="lang-en-ai">English</Label>
+                </div>
+            </RadioGroup>
+        </div>
 
         <ScrollArea className="flex-grow h-[24rem] w-full bg-background/50 rounded-lg border border-white/10 p-4" ref={scrollAreaRef}>
           <div className="space-y-6">

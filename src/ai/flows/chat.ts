@@ -15,6 +15,7 @@ const ChatInputSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']).optional().describe('The difficulty level for generating questions.'),
   message: z.string().describe('The user\'s text message.'),
   fileDataUri: z.string().optional().describe("A file (image or PDF) as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
+  language: z.enum(['ar', 'en']).optional().default('ar').describe('The language for the AI response.'),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -52,7 +53,7 @@ Instructions:
 - If the task is 'solve', solve the complex question provided. If it's a code snippet, debug it, correct it, and provide an organized, well-formatted version with explanations.
 - If the task is 'generate', create questions (easy, medium, or hard based on the difficulty level) from the content of the message or file.
 - If the task is 'summarize', provide a concise summary of the content in the message or the attached file.
-- Respond in Arabic.
+- Respond in {{#if (eq language "en")}}English{{else}}Arabic{{/if}}.
 `
 });
 
@@ -66,7 +67,7 @@ const chatFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) {
-        return { response: 'عذراً، لم أتمكن من معالجة طلبك.' };
+        return { response: 'Sorry, I was unable to process your request.' };
     }
     return output;
   }
