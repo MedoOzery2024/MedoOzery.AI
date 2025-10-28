@@ -63,9 +63,9 @@ Attached File:
 Instructions:
 - Generate exactly {{questionCount}} questions.
 - The difficulty of the questions should be: {{difficulty}}.
-- The entire output must be in {{#if (eq language "en")}}English{{else}}Arabic{{/if}}.
+- The entire output must be in {{#if (language == "en")}}English{{else}}Arabic{{/if}}.
 
-{{#if (eq questionType "static")}}
+{{#if (questionType == "static")}}
 - Generate static questions.
 - For each question, provide the question itself, the correct answer, and a brief explanation for the answer.
 - The output should be in the 'staticQuestions' array.

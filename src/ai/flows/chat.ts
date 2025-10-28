@@ -48,7 +48,7 @@ Instructions:
 - If the task is 'explain', provide a clear and concise explanation of the content in the message or the attached file.
 - If the task is 'solve', solve the complex question provided. If it's a code snippet, debug it, correct it, and provide an organized, well-formatted version with explanations.
 - If the task is 'summarize', provide a concise summary of the content in the message or the attached file.
-- Respond in {{#if (eq language "en")}}English{{else}}Arabic{{/if}}.
+- Respond in {{#if (language == "en")}}English{{else}}Arabic{{/if}}.
 `
 });
 
