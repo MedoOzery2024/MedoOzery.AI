@@ -129,12 +129,30 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
         };
 
         const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
-        await addDoc(collectionRef, fileData);
-
-        toast({
-            title: 'نجح الرفع!',
-            description: `تم حفظ ملف "${finalFileName}" في حسابك.`,
-        });
+        
+        addDoc(collectionRef, fileData)
+          .then(() => {
+            toast({
+                title: 'نجح الرفع!',
+                description: `تم حفظ ملف "${finalFileName}" في حسابك.`,
+            });
+          })
+          .catch((error) => {
+            console.error("Firestore Error:", error);
+            toast({
+              variant: "destructive",
+              title: "خطأ في قاعدة البيانات",
+              description: "لم نتمكن من حفظ معلومات الملف. قد تكون هناك مشكلة في الصلاحيات.",
+            });
+            errorEmitter.emit(
+              'permission-error',
+              new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: fileData,
+              })
+            );
+          });
 
     } catch (error: any) {
         console.error("Conversion or Upload Error:", error);
@@ -143,16 +161,6 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
             title: 'حدث خطأ',
             description: error.message || 'فشل تحويل الصور أو رفع الملف.',
         });
-        if (error.code?.includes('permission-denied')) {
-             errorEmitter.emit(
-                'permission-error',
-                new FirestorePermissionError({
-                  path: `users/${userId}/uploadedFiles`,
-                  operation: 'create',
-                  requestResourceData: {fileName: `${pdfFileName.trim()}.pdf`},
-                })
-              );
-        }
     } finally {
         setIsConverting(false);
         setProgress(0);

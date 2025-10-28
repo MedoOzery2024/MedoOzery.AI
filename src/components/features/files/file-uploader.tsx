@@ -84,15 +84,21 @@ export function FileUploader({ userId }: FileUploaderProps) {
             userId,
           };
 
-          try {
-            await addDoc(collectionRef, fileData);
-
-            toast({
-              title: 'نجح الرفع!',
-              description: `تم رفع ملف "${file.name}" بنجاح.`,
-            });
-          } catch (error) {
-             errorEmitter.emit(
+          addDoc(collectionRef, fileData)
+            .then(() => {
+              toast({
+                title: 'نجح الرفع!',
+                description: `تم رفع ملف "${file.name}" بنجاح.`,
+              });
+            })
+            .catch((error) => {
+              console.error("Firestore Error:", error);
+              toast({
+                variant: "destructive",
+                title: "خطأ في قاعدة البيانات",
+                description: "لم نتمكن من حفظ معلومات الملف. قد تكون هناك مشكلة في الصلاحيات.",
+              });
+              errorEmitter.emit(
                 'permission-error',
                 new FirestorePermissionError({
                   path: collectionRef.path,
@@ -100,14 +106,15 @@ export function FileUploader({ userId }: FileUploaderProps) {
                   requestResourceData: fileData,
                 })
               );
-          } finally {
-            setUploading(false);
-            setFile(null);
-            setProgress(0);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
-          }
+            })
+            .finally(() => {
+              setUploading(false);
+              setFile(null);
+              setProgress(0);
+              if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+              }
+            });
         });
       }
     );

@@ -186,23 +186,37 @@ export function VoiceTranscription() {
           storageLocation: downloadURL,
           userId: user.uid,
         };
-        await addDoc(collectionRef, fileData);
-
-        toast({
-            title: 'تم الحفظ بنجاح',
-            description: `تم حفظ الملف الصوتي باسم "${audioFileName}.webm".`,
-        });
-        setAudioFileName('');
+        addDoc(collectionRef, fileData)
+          .then(() => {
+            toast({
+                title: 'تم الحفظ بنجاح',
+                description: `تم حفظ الملف الصوتي باسم "${audioFileName}.webm".`,
+            });
+            setAudioFileName('');
+          })
+          .catch((error) => {
+            console.error("Firestore Error:", error);
+            toast({
+              variant: "destructive",
+              title: "خطأ في قاعدة البيانات",
+              description: "لم نتمكن من حفظ معلومات الملف. قد تكون هناك مشكلة في الصلاحيات.",
+            });
+            errorEmitter.emit(
+              'permission-error',
+              new FirestorePermissionError({
+                path: collectionRef.path,
+                operation: 'create',
+                requestResourceData: fileData,
+              })
+            );
+          });
 
       } catch (error: any) {
-         errorEmitter.emit(
-            'permission-error',
-            new FirestorePermissionError({
-              path: `users/${user.uid}/uploadedFiles`,
-              operation: 'create',
-              requestResourceData: { fileName: audioFileName },
-            })
-          );
+        toast({
+            variant: 'destructive',
+            title: 'خطأ في الرفع',
+            description: 'فشل رفع الملف الصوتي.',
+        });
       }
   };
   
