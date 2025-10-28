@@ -14,6 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Bot, Files } from 'lucide-react';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -43,20 +44,30 @@ export default function Home() {
         <ClockDisplay />
 
         {user ? (
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1">
-              <AccordionTrigger className="text-xl font-semibold">إدارة الملفات</AccordionTrigger>
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            <AccordionItem value="item-1" className="border-b-0 rounded-lg bg-card/80 backdrop-blur-sm shadow-lg border-primary/10 transition-all duration-300 hover:shadow-primary/20">
+              <AccordionTrigger className="text-xl font-semibold px-6 hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <Files className="h-6 w-6 text-primary" />
+                  <span>إدارة الملفات</span>
+                </div>
+              </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-8 pt-4">
+                <div className="space-y-8 pt-4 px-6">
                   <FileUploader userId={user.uid} />
                   <FileList userId={user.uid} />
                 </div>
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="item-2">
-              <AccordionTrigger className="text-xl font-semibold">مساعد الذكاء الاصطناعي</AccordionTrigger>
+            <AccordionItem value="item-2" className="border-b-0 rounded-lg bg-card/80 backdrop-blur-sm shadow-lg border-primary/10 transition-all duration-300 hover:shadow-primary/20">
+              <AccordionTrigger className="text-xl font-semibold px-6 hover:no-underline">
+                 <div className="flex items-center gap-3">
+                  <Bot className="h-6 w-6 text-primary" />
+                  <span>مساعد الذكاء الاصطناعي</span>
+                </div>
+              </AccordionTrigger>
               <AccordionContent>
-                <div className="pt-4">
+                <div className="pt-4 px-6">
                   <AiChat />
                 </div>
               </AccordionContent>
