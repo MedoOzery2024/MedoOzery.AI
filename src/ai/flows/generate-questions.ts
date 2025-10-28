@@ -15,7 +15,7 @@ const QuestionTypeSchema = z.enum(['static', 'interactive']);
 const GenerateQuestionsInputSchema = z.object({
   context: z.string().describe("The text content to generate questions from."),
   fileDataUri: z.string().optional().describe("An optional file (image or PDF) to extract context from. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
-  questionCount: z.number().int().min(1).describe("The number of questions to generate."),
+  questionCount: z.number().min(1).describe("The number of questions to generate."),
   difficulty: z.enum(['easy', 'medium', 'hard']).describe('The difficulty level for the questions.'),
   language: z.enum(['ar', 'en']).optional().default('ar').describe('The language for the generated questions and answers.'),
   questionType: QuestionTypeSchema.describe("The type of questions to generate: 'static' (with answers) or 'interactive' (multiple choice)."),
