@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Upload, Send, Bot, User, FileText, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Upload, Send, Bot, User, FileText, Image as ImageIcon, Sparkles, Files } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -43,7 +43,7 @@ export function AiChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState<'explain' | 'solve' | 'generate'>('explain');
+  const [activeTab, setActiveTab] = useState<'explain' | 'solve' | 'generate' | 'summarize'>('explain');
   const [questionDifficulty, setQuestionDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -135,10 +135,11 @@ export function AiChat() {
     <Card className="w-full h-full flex flex-col bg-transparent border-none shadow-none">
       <CardContent className="flex-grow flex flex-col gap-4 p-0">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-muted/20 border border-white/10 p-1 h-auto">
-                <TabsTrigger value="explain" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">شرح المحتوى</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 bg-muted/20 border border-white/10 p-1 h-auto">
+                <TabsTrigger value="explain" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">شرح</TabsTrigger>
                 <TabsTrigger value="solve" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">حل سؤال</TabsTrigger>
                 <TabsTrigger value="generate" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">عمل أسئلة</TabsTrigger>
+                <TabsTrigger value="summarize" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">تلخيص</TabsTrigger>
             </TabsList>
             <TabsContent value="generate" className="pt-4">
                  <Label className="mb-2 block text-sm font-medium text-center text-muted-foreground">اختر مستوى صعوبة الأسئلة:</Label>
@@ -165,7 +166,7 @@ export function AiChat() {
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground pt-16">
                 <Sparkles className="h-12 w-12 mb-4" />
                 <h3 className="text-lg font-semibold text-foreground">مساعدك الذكي</h3>
-                <p className="text-sm">اطرح سؤالاً أو ارفع ملفاً للبدء</p>
+                <p className="text-sm">اطرح سؤالاً، أو ارفع ملف صورة أو PDF لتحليله.</p>
               </div>
             )}
             {messages.map(msg => (
