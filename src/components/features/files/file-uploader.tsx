@@ -83,12 +83,13 @@ export function FileUploader({ userId }: FileUploaderProps) {
             reject(error);
           },
           () => {
-            getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
               const collectionRef = collection(
                 firestore,
                 `users/${userId}/uploadedFiles`
               );
               const fileData = {
+                id: '', // Firestore will generate this
                 fileName: file.name,
                 fileType: file.type || 'application/octet-stream',
                 fileSize: file.size,
@@ -97,41 +98,45 @@ export function FileUploader({ userId }: FileUploaderProps) {
                 userId,
               };
 
-              try {
-                await addDoc(collectionRef, fileData);
-                toast({
-                  title: 'نجح الرفع!',
-                  description: `تم رفع ملف "${file.name}" بنجاح.`,
+              addDoc(collectionRef, fileData)
+                .then(() => {
+                  toast({
+                    title: 'نجح الرفع!',
+                    description: `تم رفع ملف "${file.name}" بنجاح.`,
+                  });
+                  resolve();
+                })
+                .catch((error) => {
+                   console.error("Firestore Error:", error);
+                   toast({
+                     variant: "destructive",
+                     title: `خطأ في حفظ: ${file.name}`,
+                     description: "لم نتمكن من حفظ معلومات الملف. قد تكون هناك مشكلة في الصلاحيات.",
+                   });
+                   errorEmitter.emit(
+                     'permission-error',
+                     new FirestorePermissionError({
+                       path: collectionRef.path,
+                       operation: 'create',
+                       requestResourceData: fileData,
+                     })
+                   );
+                   reject(error);
                 });
-                resolve();
-              } catch (error) {
-                 console.error("Firestore Error:", error);
-                 toast({
-                   variant: "destructive",
-                   title: `خطأ في حفظ: ${file.name}`,
-                   description: "لم نتمكن من حفظ معلومات الملف. قد تكون هناك مشكلة في الصلاحيات.",
-                 });
-                 errorEmitter.emit(
-                   'permission-error',
-                   new FirestorePermissionError({
-                     path: collectionRef.path,
-                     operation: 'create',
-                     requestResourceData: fileData,
-                   })
-                 );
-                 reject(error);
-              }
-            });
+            }).catch(reject);
           }
         );
       });
     });
 
     try {
-        await Promise.all(uploadPromises);
+        // Promise.allSettled will wait for all promises to either resolve or reject
+        await Promise.allSettled(uploadPromises);
     } catch (error) {
-        console.error("An error occurred during one of the uploads.", error);
+        // This catch block might not be strictly necessary with allSettled, but good for safety
+        console.error("An unexpected error occurred during one of the uploads.", error);
     } finally {
+        // This block will run regardless of whether uploads succeeded or failed
         setUploading(false);
         setFiles([]);
         setUploadProgress([]);
