@@ -44,7 +44,7 @@ export default function Home() {
           <div className="w-12 h-12 bg-primary/10 border-2 border-primary/50 rounded-lg flex items-center justify-center">
             <FileText className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Medo.Ai Clock</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Medo.Ai</h1>
         </div>
       </header>
 

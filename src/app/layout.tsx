@@ -4,8 +4,8 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Medo.Ai Clock',
-  description: 'Digital clock with Gregorian and Hijri dates, developed by Mahmoud Mohamed Mahmoud Abu Al-Futuh Ahmed Al-Eziri.',
+  title: 'Medo.Ai',
+  description: 'AI assistant and file manager, developed by Mahmoud Mohamed Mahmoud Abu Al-Futuh Ahmed Al-Eziri.',
 };
 
 export default function RootLayout({
