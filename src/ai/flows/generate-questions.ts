@@ -10,23 +10,34 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
+const QuestionTypeSchema = z.enum(['static', 'interactive']);
+
 const GenerateQuestionsInputSchema = z.object({
   context: z.string().describe("The text content to generate questions from."),
   fileDataUri: z.string().optional().describe("An optional file (image or PDF) to extract context from. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
   questionCount: z.number().int().min(1).describe("The number of questions to generate."),
   difficulty: z.enum(['easy', 'medium', 'hard']).describe('The difficulty level for the questions.'),
   language: z.enum(['ar', 'en']).optional().default('ar').describe('The language for the generated questions and answers.'),
+  questionType: QuestionTypeSchema.describe("The type of questions to generate: 'static' (with answers) or 'interactive' (multiple choice)."),
 });
 export type GenerateQuestionsInput = z.infer<typeof GenerateQuestionsInputSchema>;
 
-const QuestionSchema = z.object({
+const StaticQuestionSchema = z.object({
     question: z.string().describe("The generated question."),
     answer: z.string().describe("The correct answer to the question."),
     explanation: z.string().describe("An explanation for why the answer is correct.")
 });
 
+const InteractiveQuestionSchema = z.object({
+    question: z.string().describe("The generated question."),
+    options: z.array(z.string()).length(4).describe("An array of 4 distinct options (multiple choice)."),
+    correctAnswerIndex: z.number().int().min(0).max(3).describe("The index (0-3) of the correct answer in the options array."),
+    explanation: z.string().describe("An explanation for why the chosen answer is correct.")
+});
+
 const GenerateQuestionsOutputSchema = z.object({
-  questions: z.array(QuestionSchema).describe('An array of generated questions.'),
+  staticQuestions: z.array(StaticQuestionSchema).optional().describe('An array of generated questions with direct answers.'),
+  interactiveQuestions: z.array(InteractiveQuestionSchema).optional().describe('An array of generated multiple-choice questions for a quiz.'),
 });
 export type GenerateQuestionsOutput = z.infer<typeof GenerateQuestionsOutputSchema>;
 
@@ -39,7 +50,7 @@ const prompt = ai.definePrompt({
     name: 'generateQuestionsPrompt',
     input: { schema: GenerateQuestionsInputSchema },
     output: { schema: GenerateQuestionsOutputSchema },
-    prompt: `You are an expert in creating educational content. Your task is to generate a specific number of questions based on the provided context (text or file).
+    prompt: `You are an expert in creating educational content. Your task is to generate a specific number of questions based on the provided context (text or file) and question type.
 
 Context:
 {{{context}}}
@@ -52,8 +63,18 @@ Attached File:
 Instructions:
 - Generate exactly {{questionCount}} questions.
 - The difficulty of the questions should be: {{difficulty}}.
+- The entire output must be in {{#if (eq language "en")}}English{{else}}Arabic{{/if}}.
+
+{{#if (eq questionType "static")}}
+- Generate static questions.
 - For each question, provide the question itself, the correct answer, and a brief explanation for the answer.
-- The entire output (questions, answers, explanations) must be in {{#if (eq language "en")}}English{{else}}Arabic{{/if}}.
+- The output should be in the 'staticQuestions' array.
+{{else}}
+- Generate an interactive multiple-choice quiz.
+- For each question, provide the question, an array of 4 distinct options, the index of the correct option, and an explanation.
+- Ensure one option is clearly correct and the others are plausible but incorrect distractors.
+- The output should be in the 'interactiveQuestions' array.
+{{/if}}
 `
 });
 
@@ -67,7 +88,7 @@ const generateQuestionsFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) {
-        return { questions: [] };
+        return { staticQuestions: [], interactiveQuestions: [] };
     }
     return output;
   }
