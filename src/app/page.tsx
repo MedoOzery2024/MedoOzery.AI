@@ -14,8 +14,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Bot, Files, FileText, Mic } from 'lucide-react';
+import { Bot, Files, FileText, Mic, Image as ImageIcon } from 'lucide-react';
 import { VoiceTranscription } from '@/components/features/voice/voice-transcription';
+import { ImageToPdfConverter } from '@/components/features/pdf/image-to-pdf-converter';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -98,6 +99,21 @@ export default function Home() {
                   <AccordionContent>
                     <div className="pt-2 pb-6 px-6">
                       <VoiceTranscription />
+                    </div>
+                  </AccordionContent>
+                </div>
+              </AccordionItem>
+              <AccordionItem value="item-4" className="border-none">
+                <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-lg transition-all duration-300 hover:border-primary/50">
+                  <AccordionTrigger className="text-xl font-semibold px-6 py-4 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <ImageIcon className="h-6 w-6 text-primary" />
+                      <span>تحويل الصور إلى PDF</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="pt-2 pb-6 px-6">
+                      <ImageToPdfConverter userId={user.uid} />
                     </div>
                   </AccordionContent>
                 </div>
