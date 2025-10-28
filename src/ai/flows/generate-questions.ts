@@ -13,7 +13,7 @@ import { z } from 'genkit';
 const GenerateQuestionsInputSchema = z.object({
   context: z.string().describe("The text content to generate questions from."),
   fileDataUri: z.string().optional().describe("An optional file (image or PDF) to extract context from. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
-  questionCount: z.number().int().min(1).max(20).describe("The number of questions to generate."),
+  questionCount: z.number().int().min(1).describe("The number of questions to generate."),
   difficulty: z.enum(['easy', 'medium', 'hard']).describe('The difficulty level for the questions.'),
   language: z.enum(['ar', 'en']).optional().default('ar').describe('The language for the generated questions and answers.'),
 });

@@ -157,14 +157,13 @@ export function QuestionGenerator() {
         </div>
 
         <div className="space-y-2">
-            <Label htmlFor="question-count" className="text-sm font-medium text-center text-muted-foreground w-full block">{language === 'ar' ? 'عدد الأسئلة (1-20)' : 'Number of Questions (1-20)'}</Label>
+            <Label htmlFor="question-count" className="text-sm font-medium text-center text-muted-foreground w-full block">{language === 'ar' ? 'عدد الأسئلة' : 'Number of Questions'}</Label>
             <Input 
                 id="question-count"
                 type="number"
                 value={questionCount}
-                onChange={(e) => setQuestionCount(Math.max(1, Math.min(20, Number(e.target.value))))}
+                onChange={(e) => setQuestionCount(Math.max(1, Number(e.target.value)))}
                 min="1"
-                max="20"
                 className="w-24 mx-auto bg-background/80 border-2 border-white/10 focus:border-primary text-center"
             />
         </div>
