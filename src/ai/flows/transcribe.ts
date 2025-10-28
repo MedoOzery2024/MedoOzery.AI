@@ -3,14 +3,17 @@
  * @fileOverview Flow to handle audio transcription and summarization.
  *
  * - transcribe - A function that handles the audio transcription process.
+ * - summarizeTranscribedText - A function that handles summarizing the transcribed text.
  * - TranscribeInput - The input type for the transcribe function.
  * - TranscribeOutput - The return type for the transcribe function.
+ * - SummarizeTranscribedInput - The input type for the summarizeTranscribedText function.
+ * - SummarizeTranscribedOutput - The return type for the summarizeTranscribedText function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const TranscribeInputSchema = z.object({
+const TranscribeInputSchema = z.object({
   audioDataUri: z
     .string()
     .describe(
@@ -19,18 +22,18 @@ export const TranscribeInputSchema = z.object({
 });
 export type TranscribeInput = z.infer<typeof TranscribeInputSchema>;
 
-export const TranscribeOutputSchema = z.object({
+const TranscribeOutputSchema = z.object({
   text: z.string().describe('The transcribed text.'),
 });
 export type TranscribeOutput = z.infer<typeof TranscribeOutputSchema>;
 
 
-export const SummarizeTranscribedInputSchema = z.object({
+const SummarizeTranscribedInputSchema = z.object({
     text: z.string().describe('The text to summarize.'),
 });
 export type SummarizeTranscribedInput = z.infer<typeof SummarizeTranscribedInputSchema>;
 
-export const SummarizeTranscribedOutputSchema = z.object({
+const SummarizeTranscribedOutputSchema = z.object({
     summary: z.string().describe('The summarized text.'),
 });
 export type SummarizeTranscribedOutput = z.infer<typeof SummarizeTranscribedOutputSchema>;
