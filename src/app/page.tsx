@@ -1,6 +1,7 @@
 'use client';
 
-import { useAuth, useUser } from '@/firebase';
+import { useUser } from '@/firebase/auth/use-user';
+import { useAuth } from '@/firebase';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { ClockDisplay } from '@/components/features/clock/clock-display';
 import { FileUploader } from '@/components/features/files/file-uploader';
@@ -20,7 +21,7 @@ import { ImageToPdfConverter } from '@/components/features/pdf/image-to-pdf-conv
 import { QuestionGenerator } from '@/components/features/ai/question-generator';
 
 export default function Home() {
-  const { user, isUserLoading } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const auth = useAuth();
 
   useEffect(() => {

@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 interface UploadedFile {
   id: string;
@@ -84,7 +85,7 @@ export function FileList({ userId }: FileListProps) {
 
     try {
       await deleteObject(storageRef);
-      await deleteDoc(fileDocRef);
+      deleteDocumentNonBlocking(fileDocRef);
 
       toast({
         title: 'تم الحذف بنجاح',
