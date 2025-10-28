@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Upload, Send, Bot, User, FileText, Image as ImageIcon } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Upload, Send, Bot, User, FileText, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { chat, type ChatInput } from '@/ai/flows/chat';
+import { Badge } from '@/components/ui/badge';
 
 
 interface Message {
@@ -46,7 +47,17 @@ export function AiChat() {
   const [questionDifficulty, setQuestionDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+    React.useEffect(() => {
+        if (scrollAreaRef.current) {
+            scrollAreaRef.current.scrollTo({
+                top: scrollAreaRef.current.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
+    }, [messages, isLoading]);
 
   const handleSendMessage = async () => {
     if (!input.trim() && !selectedFile) return;
@@ -94,6 +105,14 @@ export function AiChat() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > 4 * 1024 * 1024) { // 4MB limit
+        toast({
+            variant: 'destructive',
+            title: 'الملف كبير جدًا',
+            description: 'الرجاء اختيار ملف أصغر من 4 ميجابايت.',
+        });
+        return;
+      }
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         setSelectedFile(file);
         setInput(prev => prev ? `${prev} | ${file.name}` : file.name);
@@ -113,22 +132,16 @@ export function AiChat() {
 
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot />
-          مساعد الذكاء الاصطناعي
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col gap-4">
+    <Card className="w-full h-full flex flex-col bg-transparent border-none shadow-none">
+      <CardContent className="flex-grow flex flex-col gap-4 p-0">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="explain">شرح المحتوى</TabsTrigger>
-                <TabsTrigger value="solve">حل سؤال</TabsTrigger>
-                <TabsTrigger value="generate">عمل أسئلة</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-muted/20 border border-white/10 p-1 h-auto">
+                <TabsTrigger value="explain" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">شرح المحتوى</TabsTrigger>
+                <TabsTrigger value="solve" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">حل سؤال</TabsTrigger>
+                <TabsTrigger value="generate" className="py-2 data-[state=active]:bg-primary/90 data-[state=active]:text-primary-foreground">عمل أسئلة</TabsTrigger>
             </TabsList>
-            <TabsContent value="generate" className="pt-2">
-                 <Label className="mb-2 block text-sm font-medium text-center">اختر مستوى صعوبة الأسئلة:</Label>
+            <TabsContent value="generate" className="pt-4">
+                 <Label className="mb-2 block text-sm font-medium text-center text-muted-foreground">اختر مستوى صعوبة الأسئلة:</Label>
                 <RadioGroup defaultValue="medium" value={questionDifficulty} onValueChange={(value) => setQuestionDifficulty(value as any)} className="flex justify-center gap-4">
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
                         <RadioGroupItem value="easy" id="r1" />
@@ -146,31 +159,38 @@ export function AiChat() {
             </TabsContent>
         </Tabs>
 
-        <ScrollArea className="flex-grow h-96 w-full rounded-md border p-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-grow h-[24rem] w-full bg-background/50 rounded-lg border border-white/10 p-4" ref={scrollAreaRef}>
+          <div className="space-y-6">
+            {messages.length === 0 && !isLoading && (
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground pt-16">
+                <Sparkles className="h-12 w-12 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground">مساعدك الذكي</h3>
+                <p className="text-sm">اطرح سؤالاً أو ارفع ملفاً للبدء</p>
+              </div>
+            )}
             {messages.map(msg => (
-              <div key={msg.id} className={`flex items-start gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
+              <div key={msg.id} className={`flex items-start gap-3 w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                  {msg.sender === 'bot' && (
-                    <Avatar className="h-8 w-8">
-                        <AvatarFallback><Bot /></AvatarFallback>
+                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                        <AvatarFallback><Bot size={20} /></AvatarFallback>
                     </Avatar>
                  )}
-                <div className={`rounded-lg px-4 py-2 max-w-[80%] ${msg.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                <div className={`rounded-lg px-4 py-3 max-w-[90%] md:max-w-[80%] ${msg.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted/40 text-foreground'}`}>
                   <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                 </div>
                  {msg.sender === 'user' && (
                     <Avatar className="h-8 w-8">
-                        <AvatarFallback><User /></AvatarFallback>
+                        <AvatarFallback><User size={20} /></AvatarFallback>
                     </Avatar>
                  )}
               </div>
             ))}
              {isLoading && (
                 <div className="flex items-start gap-3">
-                    <Avatar className="h-8 w-8">
-                        <AvatarFallback><Bot /></AvatarFallback>
+                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                        <AvatarFallback><Bot size={20} /></AvatarFallback>
                     </Avatar>
-                    <div className="rounded-lg px-4 py-2 bg-muted">
+                    <div className="rounded-lg px-4 py-2 bg-muted/40">
                         <div className="flex items-center gap-2 text-sm">
                             <div className="h-2 w-2 bg-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                             <div className="h-2 w-2 bg-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
@@ -182,7 +202,7 @@ export function AiChat() {
           </div>
         </ScrollArea>
         
-        <div className="flex items-center gap-2">
+        <div className="relative">
           <Input
             type="text"
             placeholder="اسأل أو صف الملف..."
@@ -190,22 +210,26 @@ export function AiChat() {
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !isLoading && handleSendMessage()}
             disabled={isLoading}
-            className="flex-grow"
+            className="flex-grow h-12 pr-12 pl-4 bg-background/80 border-2 border-white/10 focus:border-primary"
           />
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,application/pdf" className="hidden" />
-          <Button variant="outline" size="icon" onClick={triggerFileUpload} disabled={isLoading}>
-            <Upload className="h-5 w-5" />
-          </Button>
-          <Button onClick={handleSendMessage} disabled={isLoading}>
-            <Send className="h-5 w-5" />
-          </Button>
+            <div className="absolute top-1/2 right-3 transform -translate-y-1/2 flex items-center gap-1">
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,application/pdf" className="hidden" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={triggerFileUpload} disabled={isLoading}>
+                    <Upload className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={handleSendMessage} disabled={isLoading || (!input.trim() && !selectedFile)}>
+                    <Send className="h-5 w-5" />
+                </Button>
+            </div>
         </div>
         {selectedFile && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 border rounded-md">
-            {selectedFile.type.startsWith('image/') ? <ImageIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-            <span>{selectedFile.name}</span>
-            <button onClick={() => { setSelectedFile(null); setInput(input.split(' | ')[0]); }} className="mr-auto text-destructive hover:text-destructive/80">&times;</button>
-          </div>
+            <Badge variant="secondary" className="flex items-center justify-between p-2 text-sm">
+                <div className="flex items-center gap-2">
+                    {selectedFile.type.startsWith('image/') ? <ImageIcon className="h-4 w-4 text-primary" /> : <FileText className="h-4 w-4 text-primary" />}
+                    <span>{selectedFile.name}</span>
+                </div>
+                <button onClick={() => { setSelectedFile(null); setInput(input.split(' | ')[0] || ''); }} className="mr-auto text-destructive hover:text-destructive/80">&times;</button>
+          </Badge>
         )}
       </CardContent>
     </Card>

@@ -1,22 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from "@/components/ui/card";
 
 function LoadingSkeleton() {
     return (
-        <Card className="w-full max-w-md mx-auto animate-pulse bg-card/80 backdrop-blur-sm">
-            <CardHeader>
-                <div className="h-10 bg-muted rounded-md w-2/3 mx-auto"></div>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center space-y-4 px-4 pb-4 md:px-6 md:pb-6">
-                <div className="h-20 bg-muted rounded-xl w-full"></div>
-                <Separator className="my-4" />
-                <div className="w-full text-center space-y-3">
-                    <div className="h-8 bg-muted rounded-md w-1/3 mx-auto"></div>
-                    <div className="h-7 bg-muted rounded-md w-2/3 mx-auto"></div>
-                    <div className="h-7 bg-muted rounded-md w-2/3 mx-auto"></div>
+        <Card className="w-full max-w-md mx-auto animate-pulse bg-card/80 backdrop-blur-sm border border-white/10">
+            <CardContent className="flex flex-col items-center space-y-6 p-6">
+                <div className="h-24 bg-muted/50 rounded-xl w-full"></div>
+                <div className="w-full text-center space-y-4">
+                    <div className="h-8 bg-muted/50 rounded-md w-1/3 mx-auto"></div>
+                    <div className="h-7 bg-muted/50 rounded-md w-2/3 mx-auto"></div>
+                    <div className="h-7 bg-muted/50 rounded-md w-2/3 mx-auto"></div>
                 </div>
             </CardContent>
         </Card>
@@ -72,21 +67,15 @@ export function ClockDisplay() {
   const currentDay = date.toLocaleDateString('en-US', dayOptions);
   
   return (
-    <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-sm shadow-2xl border-primary/10 transition-all duration-300 hover:shadow-primary/20">
-      <CardHeader>
-        <CardTitle className="text-center text-4xl font-headline text-primary tracking-wider">
-          Medo.Ai
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-4 px-4 pb-4 md:px-6 md:pb-6">
-        <div className="text-5xl sm:text-6xl md:text-7xl font-bold font-mono text-primary-foreground bg-primary/90 p-4 rounded-xl shadow-inner w-full text-center">
+    <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-sm shadow-2xl border border-white/10 transition-all duration-300 hover:border-primary/50">
+      <CardContent className="flex flex-col items-center space-y-5 p-6">
+        <div className="text-6xl sm:text-7xl md:text-8xl font-bold font-mono text-background bg-primary p-4 rounded-xl shadow-lg w-full text-center tracking-wider">
           {digitalTime}
         </div>
-        <Separator className="my-4" />
-        <div className="w-full text-center space-y-2 text-lg md:text-xl text-foreground/90">
+        <div className="w-full text-center space-y-2 text-lg md:text-xl text-foreground">
           <p className="font-bold text-2xl text-primary">{currentDay}</p>
-          <p>{gregorianDate}</p>
-          <p dir="rtl">{hijriDate}</p>
+          <p className="text-muted-foreground">{gregorianDate}</p>
+          <p dir="rtl" className="text-muted-foreground">{hijriDate}</p>
         </div>
       </CardContent>
     </Card>

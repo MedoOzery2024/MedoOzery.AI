@@ -11,7 +11,6 @@ import {
 } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -20,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Trash2, File as FileIcon } from 'lucide-react';
+import { Trash2, File as FileIcon, Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -33,6 +32,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface UploadedFile {
   id: string;
@@ -82,9 +83,7 @@ export function FileList({ userId }: FileListProps) {
     const storageRef = ref(storage, file.storageLocation);
 
     try {
-      // Delete file from Cloud Storage
       await deleteObject(storageRef);
-      // Delete document from Firestore
       await deleteDoc(fileDocRef);
 
       toast({
@@ -103,88 +102,68 @@ export function FileList({ userId }: FileListProps) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>قائمة الملفات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="h-10 bg-muted rounded-md animate-pulse w-full"></div>
-            <div className="h-10 bg-muted rounded-md animate-pulse w-full"></div>
-            <div className="h-10 bg-muted rounded-md animate-pulse w-full"></div>
-          </div>
-        </CardContent>
-      </Card>
+       <div className="space-y-3">
+        <div className="flex items-center space-x-4 animate-pulse">
+            <div className="h-12 w-12 bg-muted rounded-lg"></div>
+            <div className="space-y-2 flex-1">
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+            <div className="h-3 bg-muted rounded w-1/2"></div>
+            </div>
+        </div>
+        <div className="flex items-center space-x-4 animate-pulse">
+            <div className="h-12 w-12 bg-muted rounded-lg"></div>
+            <div className="space-y-2 flex-1">
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+            <div className="h-3 bg-muted rounded w-1/2"></div>
+            </div>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-destructive">
+      <div className="text-destructive p-4 bg-destructive/10 rounded-lg">
         خطأ في تحميل الملفات: {error.message}
       </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>قائمة الملفات المرفوعة</CardTitle>
+    <Card className="bg-transparent border-none shadow-none">
+      <CardHeader className="p-0 mb-4">
+        <CardTitle className="text-lg">قائمة الملفات</CardTitle>
+        <CardDescription>هنا تظهر جميع ملفاتك التي تم رفعها.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {files && files.length > 0 ? (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>اسم الملف</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    النوع
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    الحجم
-                  </TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    تاريخ الرفع
-                  </TableHead>
-                  <TableHead className="text-right">إجراء</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {files.map((file) => (
-                  <TableRow key={file.id}>
-                    <TableCell className="font-medium flex items-center gap-2">
-                      <FileIcon className="h-5 w-5 text-muted-foreground" />
-                      <a
-                        href={file.storageLocation}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        {file.fileName}
-                      </a>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {file.fileType}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {formatBytes(file.fileSize)}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {new Date(file.uploadDate).toLocaleDateString('ar-EG')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <AlertDialog>
+          <div className="space-y-3">
+            {files.map((file) => (
+              <div key={file.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-white/10">
+                <div className="flex items-center gap-3">
+                    <FileIcon className="h-6 w-6 text-primary" />
+                    <div className="flex flex-col">
+                        <span className="font-medium">{file.fileName}</span>
+                        <span className="text-xs text-muted-foreground">
+                            {formatBytes(file.fileSize)} - {new Date(file.uploadDate).toLocaleDateString('ar-EG')}
+                        </span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <a href={file.storageLocation} target="_blank" rel="noopener noreferrer">
+                        <Button variant="ghost" size="icon">
+                            <Download className="h-5 w-5" />
+                        </Button>
+                    </a>
+                    <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-5 w-5 text-destructive" />
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              هل أنت متأكد تماماً؟
-                            </AlertDialogTitle>
+                            <AlertDialogTitle>هل أنت متأكد تماماً؟</AlertDialogTitle>
                             <AlertDialogDescription>
                               هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف
                               الملف بشكل دائم من خوادمنا.
@@ -192,21 +171,21 @@ export function FileList({ userId }: FileListProps) {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(file)}>
+                            <AlertDialogAction onClick={() => handleDelete(file)} className="bg-destructive hover:bg-destructive/80">
                               تأكيد الحذف
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="text-center py-8 border-2 border-dashed rounded-lg">
-            <p className="text-muted-foreground">لم يتم رفع أي ملفات بعد.</p>
+          <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-lg">
+            <FileIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+            <p className="mt-4 text-muted-foreground">لم يتم رفع أي ملفات بعد.</p>
+            <p className="text-xs text-muted-foreground/70">ابدأ برفع ملفك الأول.</p>
           </div>
         )}
       </CardContent>
