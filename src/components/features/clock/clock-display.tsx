@@ -69,13 +69,13 @@ export function ClockDisplay() {
   return (
     <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-sm shadow-2xl border border-white/10 transition-all duration-300 hover:border-primary/50">
       <CardContent className="flex flex-col items-center space-y-5 p-6">
-        <div className="text-6xl sm:text-7xl md:text-8xl font-bold font-mono text-background bg-primary p-4 rounded-xl shadow-lg w-full text-center tracking-wider">
+        <div className="text-6xl sm:text-7xl md:text-8xl font-bold font-mono text-primary-foreground bg-primary p-4 rounded-xl shadow-lg w-full text-center tracking-wider">
           {digitalTime}
         </div>
         <div className="w-full text-center space-y-2 text-lg md:text-xl text-foreground">
           <p className="font-bold text-2xl text-primary">{currentDay}</p>
-          <p className="text-muted-foreground">{gregorianDate}</p>
-          <p dir="rtl" className="text-muted-foreground">{hijriDate}</p>
+          <p className="text-foreground/80">{gregorianDate}</p>
+          <p dir="rtl" className="text-foreground/80">{hijriDate}</p>
         </div>
       </CardContent>
     </Card>
