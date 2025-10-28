@@ -48,7 +48,7 @@ export async function generateQuestions(input: GenerateQuestionsInput): Promise<
 
 const prompt = ai.definePrompt({
     name: 'generateQuestionsPrompt',
-    input: { schema: GenerateQuestionsInputSchema },
+    input: { schema: GenerateQuestionsInputSchema.extend({ isEnglish: z.boolean().optional(), isStatic: z.boolean().optional() }) },
     output: { schema: GenerateQuestionsOutputSchema },
     prompt: `You are an expert in creating educational content. Your task is to generate a specific number of questions based on the provided context (text or file) and question type.
 
@@ -63,9 +63,9 @@ Attached File:
 Instructions:
 - Generate exactly {{questionCount}} questions.
 - The difficulty of the questions should be: {{difficulty}}.
-- The entire output must be in {{#if (language == "en")}}English{{else}}Arabic{{/if}}.
+- The entire output must be in {{#if isEnglish}}English{{else}}Arabic{{/if}}.
 
-{{#if (questionType == "static")}}
+{{#if isStatic}}
 - Generate static questions.
 - For each question, provide the question itself, the correct answer, and a brief explanation for the answer.
 - The output should be in the 'staticQuestions' array.
@@ -86,7 +86,9 @@ const generateQuestionsFlow = ai.defineFlow(
     outputSchema: GenerateQuestionsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const isEnglish = input.language === 'en';
+    const isStatic = input.questionType === 'static';
+    const { output } = await prompt({ ...input, isEnglish, isStatic });
     if (!output) {
         return { staticQuestions: [], interactiveQuestions: [] };
     }

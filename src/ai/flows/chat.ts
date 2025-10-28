@@ -30,7 +30,7 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
 
 const prompt = ai.definePrompt({
     name: 'chatPrompt',
-    input: { schema: ChatInputSchema },
+    input: { schema: ChatInputSchema.extend({ isEnglish: z.boolean().optional() }) },
     output: { schema: ChatOutputSchema },
     prompt: `You are an expert AI assistant specialized in various fields including accounting, mathematics, programming, and general sciences. Your task is to process user requests based on the provided text and optional file.
 
@@ -48,7 +48,7 @@ Instructions:
 - If the task is 'explain', provide a clear and concise explanation of the content in the message or the attached file.
 - If the task is 'solve', solve the complex question provided. If it's a code snippet, debug it, correct it, and provide an organized, well-formatted version with explanations.
 - If the task is 'summarize', provide a concise summary of the content in the message or the attached file.
-- Respond in {{#if (language == "en")}}English{{else}}Arabic{{/if}}.
+- Respond in {{#if isEnglish}}English{{else}}Arabic{{/if}}.
 `
 });
 
@@ -60,7 +60,8 @@ const chatFlow = ai.defineFlow(
     outputSchema: ChatOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const isEnglish = input.language === 'en';
+    const { output } = await prompt({ ...input, isEnglish });
     if (!output) {
         return { response: 'Sorry, I was unable to process your request.' };
     }
