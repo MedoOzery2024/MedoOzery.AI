@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { chat, type ChatInput } from '@/ai/flows/chat';
 
 
 interface Message {
@@ -19,13 +20,30 @@ interface Message {
   sender: 'user' | 'bot';
 }
 
+// Helper function to read file as Data URI
+const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result);
+            } else {
+                reject(new Error('Failed to read file as Data URI'));
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+};
+
+
 export function AiChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState('explain');
-  const [questionDifficulty, setQuestionDifficulty] = useState('medium');
+  const [activeTab, setActiveTab] = useState<'explain' | 'solve' | 'generate'>('explain');
+  const [questionDifficulty, setQuestionDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -33,20 +51,44 @@ export function AiChat() {
   const handleSendMessage = async () => {
     if (!input.trim() && !selectedFile) return;
 
-    const userMessage: Message = { id: Date.now().toString(), text: input, sender: 'user' };
+    const userMessageText = input;
+    const userMessage: Message = { id: Date.now().toString(), text: userMessageText, sender: 'user' };
     setMessages(prev => [...prev, userMessage]);
-
-    // Here we will call the Genkit flow in the future
     setIsLoading(true);
     setInput('');
+    const currentFile = selectedFile;
     setSelectedFile(null);
 
-    // Mock bot response for now
-    setTimeout(() => {
-      const botResponse: Message = { id: (Date.now() + 1).toString(), text: 'هذه استجابة مؤقتة من الذكاء الاصطناعي.', sender: 'bot' };
-      setMessages(prev => [...prev, botResponse]);
-      setIsLoading(false);
-    }, 1500);
+    try {
+        let fileDataUri: string | undefined = undefined;
+        if (currentFile) {
+            fileDataUri = await fileToDataUri(currentFile);
+        }
+
+        const chatInput: ChatInput = {
+            task: activeTab,
+            message: userMessageText,
+            fileDataUri: fileDataUri,
+            ...(activeTab === 'generate' && { difficulty: questionDifficulty }),
+        };
+
+        const result = await chat(chatInput);
+
+        const botResponse: Message = { id: (Date.now() + 1).toString(), text: result.response, sender: 'bot' };
+        setMessages(prev => [...prev, botResponse]);
+
+    } catch(e: any) {
+        console.error(e);
+        const errorResponse: Message = { id: (Date.now() + 1).toString(), text: 'عذراً، حدث خطأ أثناء معالجة طلبك.', sender: 'bot' };
+        setMessages(prev => [...prev, errorResponse]);
+        toast({
+            variant: 'destructive',
+            title: 'حدث خطأ',
+            description: e.message || 'فشل الاتصال بمساعد الذكاء الاصطناعي.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +121,7 @@ export function AiChat() {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col gap-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="explain">شرح المحتوى</TabsTrigger>
                 <TabsTrigger value="solve">حل سؤال</TabsTrigger>
@@ -87,7 +129,7 @@ export function AiChat() {
             </TabsList>
             <TabsContent value="generate" className="pt-2">
                  <Label className="mb-2 block text-sm font-medium text-center">اختر مستوى صعوبة الأسئلة:</Label>
-                <RadioGroup defaultValue="medium" value={questionDifficulty} onValueChange={setQuestionDifficulty} className="flex justify-center gap-4">
+                <RadioGroup defaultValue="medium" value={questionDifficulty} onValueChange={(value) => setQuestionDifficulty(value as any)} className="flex justify-center gap-4">
                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
                         <RadioGroupItem value="easy" id="r1" />
                         <Label htmlFor="r1">سهل</Label>
@@ -162,7 +204,7 @@ export function AiChat() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 border rounded-md">
             {selectedFile.type.startsWith('image/') ? <ImageIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
             <span>{selectedFile.name}</span>
-            <button onClick={() => { setSelectedFile(null); setInput(''); }} className="mr-auto text-destructive hover:text-destructive/80">&times;</button>
+            <button onClick={() => { setSelectedFile(null); setInput(input.split(' | ')[0]); }} className="mr-auto text-destructive hover:text-destructive/80">&times;</button>
           </div>
         )}
       </CardContent>
