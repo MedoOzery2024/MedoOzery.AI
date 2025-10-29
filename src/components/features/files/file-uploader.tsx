@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import {
   getStorage,
   ref,
@@ -84,12 +84,11 @@ export function FileUploader({ userId }: FileUploaderProps) {
           },
           () => {
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-              const collectionRef = collection(
-                firestore,
-                `users/${userId}/uploadedFiles`
-              );
+              const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
+              const newDocRef = doc(collectionRef); // Create a new doc with a generated ID
+              
               const fileData = {
-                id: '', // Firestore will generate this
+                id: newDocRef.id,
                 fileName: file.name,
                 fileType: file.type || 'application/octet-stream',
                 fileSize: file.size,
@@ -98,7 +97,7 @@ export function FileUploader({ userId }: FileUploaderProps) {
                 userId,
               };
 
-              addDoc(collectionRef, fileData)
+              setDoc(newDocRef, fileData)
                 .then(() => {
                   toast({
                     title: 'نجح الرفع!',
@@ -116,7 +115,7 @@ export function FileUploader({ userId }: FileUploaderProps) {
                    errorEmitter.emit(
                      'permission-error',
                      new FirestorePermissionError({
-                       path: collectionRef.path,
+                       path: newDocRef.path,
                        operation: 'create',
                        requestResourceData: fileData,
                      })
@@ -130,13 +129,10 @@ export function FileUploader({ userId }: FileUploaderProps) {
     });
 
     try {
-        // Promise.allSettled will wait for all promises to either resolve or reject
         await Promise.allSettled(uploadPromises);
     } catch (error) {
-        // This catch block might not be strictly necessary with allSettled, but good for safety
         console.error("An unexpected error occurred during one of the uploads.", error);
     } finally {
-        // This block will run regardless of whether uploads succeeded or failed
         setUploading(false);
         setFiles([]);
         setUploadProgress([]);
