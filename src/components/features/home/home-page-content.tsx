@@ -4,8 +4,6 @@ import { useUser } from '@/firebase/auth/use-user';
 import { useAuth } from '@/firebase';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { ClockDisplay } from '@/components/features/clock/clock-display';
-import { FileUploader } from '@/components/features/files/file-uploader';
-import { FileList } from '@/components/features/files/file-list';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { AiChat } from '@/components/features/ai/ai-chat';
@@ -15,7 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Bot, Files, FileText, Mic, Image as ImageIcon, HelpCircle } from 'lucide-react';
+import { Bot, FileText, Mic, Image as ImageIcon, HelpCircle } from 'lucide-react';
 import { VoiceTranscription } from '@/components/features/voice/voice-transcription';
 import { ImageToPdfConverter } from '@/components/features/pdf/image-to-pdf-converter';
 import { QuestionGenerator } from '@/components/features/ai/question-generator';
@@ -64,22 +62,6 @@ export function HomePageContent() {
         <div className="lg:col-span-2 w-full space-y-6">
           {user ? (
             <Accordion type="single" collapsible defaultValue="item-2" className="w-full space-y-6">
-              <AccordionItem value="item-1" className="border-none">
-                <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-lg transition-all duration-300 hover:border-primary/50">
-                  <AccordionTrigger className="text-xl font-semibold px-6 py-4 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <Files className="h-6 w-6 text-primary" />
-                      <span>إدارة الملفات</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-6 pt-2 pb-6 px-6">
-                      <FileUploader userId={user.uid} />
-                      <FileList userId={user.uid} />
-                    </div>
-                  </AccordionContent>
-                </div>
-              </AccordionItem>
               <AccordionItem value="item-2" className="border-none">
                 <div className="bg-card/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-lg transition-all duration-300 hover:border-primary/50">
                   <AccordionTrigger className="text-xl font-semibold px-6 py-4 hover:no-underline">
@@ -144,7 +126,7 @@ export function HomePageContent() {
           ) : (
              <div className="text-center p-8 bg-card/80 rounded-xl border border-white/10">
               <p className="mb-4 text-muted-foreground">
-                الرجاء تسجيل الدخول لعرض الملفات والتحميل.
+                الرجاء تسجيل الدخول لعرض الميزات.
               </p>
               <Button onClick={() => auth && initiateAnonymousSignIn(auth)}>
                 تسجيل دخول مجهول
