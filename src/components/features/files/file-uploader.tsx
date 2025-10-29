@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
 import {
@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { UploadCloud, File, X, Loader2 } from 'lucide-react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useDropzone } from 'react-dropzone';
 
 interface FileUploaderProps {
   userId: string;
@@ -32,21 +33,19 @@ export function FileUploader({ userId }: FileUploaderProps) {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const firestore = useFirestore();
   const { toast } = useToast();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(prev => [...prev, ...Array.from(e.target.files ?? [])]);
-    }
-  };
-  
-  const triggerFileSelect = () => {
-    fileInputRef.current?.click();
-  }
-  
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    setFiles(prev => [...prev, ...acceptedFiles]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    disabled: uploading,
+  });
+
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
-  }
+  };
 
   const handleUpload = async () => {
     if (files.length === 0 || !firestore || !userId) return;
@@ -68,11 +67,11 @@ export function FileUploader({ userId }: FileUploaderProps) {
               (snapshot.bytesTransferred / snapshot.totalBytes) * 100
             );
             setUploadProgress(prev => {
-                const newProgress = [...prev];
-                if (newProgress[index]) {
-                  newProgress[index] = { ...newProgress[index], progress: prog };
-                }
-                return newProgress;
+              const newProgress = [...prev];
+              if (newProgress[index]) {
+                newProgress[index] = { ...newProgress[index], progress: prog };
+              }
+              return newProgress;
             });
           },
           (error) => {
@@ -87,7 +86,7 @@ export function FileUploader({ userId }: FileUploaderProps) {
           () => {
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
               const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
-              const newDocRef = doc(collectionRef); 
+              const newDocRef = doc(collectionRef);
               
               const fileData = {
                 id: newDocRef.id,
@@ -101,10 +100,6 @@ export function FileUploader({ userId }: FileUploaderProps) {
 
               setDoc(newDocRef, fileData)
                 .then(() => {
-                  toast({
-                    title: 'نجح الرفع!',
-                    description: `تم رفع ملف "${file.name}" بنجاح.`,
-                  });
                   resolve();
                 })
                 .catch((error) => {
@@ -130,37 +125,45 @@ export function FileUploader({ userId }: FileUploaderProps) {
       });
     });
 
-    try {
-        await Promise.allSettled(uploadPromises);
-    } catch (error) {
-        console.error("An unexpected error occurred during one of the uploads.", error);
-    } finally {
-        setUploading(false);
-        setFiles([]);
-        setUploadProgress([]);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+    const results = await Promise.allSettled(uploadPromises);
+    
+    const successfulUploads = results.filter(r => r.status === 'fulfilled').length;
+    if (successfulUploads > 0) {
+        toast({
+            title: 'اكتمل الرفع!',
+            description: `تم رفع ${successfulUploads} من ${files.length} ملف بنجاح.`,
+        });
     }
+
+    setUploading(false);
+    setFiles([]);
+    setUploadProgress([]);
   };
 
   return (
     <Card className="bg-transparent border-none shadow-none">
       <CardHeader className="p-0 mb-4">
         <CardTitle className="text-lg">رفع ملفات جديدة</CardTitle>
-        <CardDescription>اختر ملفًا أو أكثر من جهازك لرفعها.</CardDescription>
+        <CardDescription>اسحب وأفلت الملفات هنا أو انقر للاختيار.</CardDescription>
       </CardHeader>
       <CardContent className="p-0 space-y-4">
         <div 
-          onClick={triggerFileSelect} 
+          {...getRootProps()}
           className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/20 transition-colors
-          ${uploading ? 'cursor-not-allowed' : ''}`}>
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" disabled={uploading} multiple />
+          ${isDragActive ? 'border-primary bg-primary/10' : 'border-white/10'}
+          ${uploading ? 'cursor-not-allowed opacity-50' : ''}`}>
+          <input {...getInputProps()} />
           
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+          <div className="flex flex-col items-center justify-center text-center">
               <UploadCloud className="w-8 h-8 mb-4 text-muted-foreground" />
-              <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">انقر للاختيار</span> أو اسحب الملفات</p>
-              <p className="text-xs text-muted-foreground">يمكن رفع أي نوع من الملفات</p>
+              {isDragActive ? (
+                <p className="text-sm font-semibold text-primary">أفلت الملفات هنا...</p>
+              ) : (
+                <>
+                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">انقر للاختيار</span> أو اسحب الملفات</p>
+                    <p className="text-xs text-muted-foreground">يمكن رفع أي نوع من الملفات</p>
+                </>
+              )}
           </div>
         </div>
 

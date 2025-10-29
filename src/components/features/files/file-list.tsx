@@ -1,25 +1,16 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import {
   collection,
   query,
   orderBy,
-  deleteDoc,
   doc,
 } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Trash2, File as FileIcon, Download, Loader2 } from 'lucide-react';
+import { Trash2, File as FileIcon, Download, Loader2, FolderOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -33,8 +24,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface UploadedFile {
   id: string;
@@ -57,6 +48,27 @@ function formatBytes(bytes: number, decimals = 2) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
+
+const FileListSkeleton = () => (
+    <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-white/10">
+                <div className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <div className="flex flex-col gap-2">
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-3 w-32" />
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
 
 export function FileList({ userId }: FileListProps) {
   const firestore = useFirestore();
@@ -81,10 +93,13 @@ export function FileList({ userId }: FileListProps) {
 
     const storage = getStorage();
     const fileDocRef = doc(firestore, `users/${userId}/uploadedFiles`, file.id);
+    // Construct the storage reference from the full download URL
     const storageRef = ref(storage, file.storageLocation);
 
     try {
+      // First, delete the file from Storage
       await deleteObject(storageRef);
+      // Then, delete the document from Firestore
       deleteDocumentNonBlocking(fileDocRef);
 
       toast({
@@ -93,33 +108,26 @@ export function FileList({ userId }: FileListProps) {
       });
     } catch (e: any) {
       console.error('Error deleting file:', e);
-      toast({
-        variant: 'destructive',
-        title: 'حدث خطأ',
-        description: e.message || 'لا يمكن حذف الملف.',
-      });
+       if (e.code === 'storage/object-not-found') {
+        // If file doesn't exist in storage, just delete the firestore doc
+        deleteDocumentNonBlocking(fileDocRef);
+        toast({
+            variant: 'default',
+            title: 'تم حذف البيانات',
+            description: `تم حذف بيانات الملف "${file.fileName}"، لكن الملف لم يكن موجوداً في وحدة التخزين.`,
+        });
+      } else {
+        toast({
+            variant: 'destructive',
+            title: 'حدث خطأ',
+            description: e.message || 'لا يمكن حذف الملف.',
+        });
+      }
     }
   };
 
   if (isLoading) {
-    return (
-       <div className="space-y-3">
-        <div className="flex items-center space-x-4 animate-pulse">
-            <div className="h-12 w-12 bg-muted rounded-lg"></div>
-            <div className="space-y-2 flex-1">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-3 bg-muted rounded w-1/2"></div>
-            </div>
-        </div>
-        <div className="flex items-center space-x-4 animate-pulse">
-            <div className="h-12 w-12 bg-muted rounded-lg"></div>
-            <div className="space-y-2 flex-1">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-3 bg-muted rounded w-1/2"></div>
-            </div>
-        </div>
-      </div>
-    );
+    return <FileListSkeleton />;
   }
 
   if (error) {
@@ -140,18 +148,18 @@ export function FileList({ userId }: FileListProps) {
         {files && files.length > 0 ? (
           <div className="space-y-3">
             {files.map((file) => (
-              <div key={file.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-white/10">
-                <div className="flex items-center gap-3">
-                    <FileIcon className="h-6 w-6 text-primary" />
-                    <div className="flex flex-col">
-                        <span className="font-medium">{file.fileName}</span>
+              <div key={file.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-white/10 hover:border-primary/50 transition-colors duration-300">
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <FileIcon className="h-6 w-6 text-primary flex-shrink-0" />
+                    <div className="flex flex-col overflow-hidden">
+                        <span className="font-medium truncate">{file.fileName}</span>
                         <span className="text-xs text-muted-foreground">
                             {formatBytes(file.fileSize)} - {new Date(file.uploadDate).toLocaleDateString('ar-EG')}
                         </span>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <a href={file.storageLocation} target="_blank" rel="noopener noreferrer">
+                <div className="flex items-center gap-1 flex-shrink-0">
+                    <a href={file.storageLocation} target="_blank" rel="noopener noreferrer" download={file.fileName}>
                         <Button variant="ghost" size="icon">
                             <Download className="h-5 w-5" />
                         </Button>
@@ -184,7 +192,7 @@ export function FileList({ userId }: FileListProps) {
           </div>
         ) : (
           <div className="text-center py-10 border-2 border-dashed border-white/10 rounded-lg">
-            <FileIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+            <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground" />
             <p className="mt-4 text-muted-foreground">لم يتم رفع أي ملفات بعد.</p>
             <p className="text-xs text-muted-foreground/70">ابدأ برفع ملفك الأول.</p>
           </div>
