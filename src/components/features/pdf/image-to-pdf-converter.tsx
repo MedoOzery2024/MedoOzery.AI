@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import {
   getStorage,
   ref,
@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { ImageUp, FileSignature, Loader2, X, File, Download } from 'lucide-react';
+import { ImageUp, FileSignature, Loader2, X, Download } from 'lucide-react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { jsPDF } from 'jspdf';
@@ -119,7 +119,10 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
         const uploadTask = await uploadString(storageRef, pdfDataUri, 'data_url');
         const downloadURL = await getDownloadURL(uploadTask.ref);
         
+        const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
+        const newDocRef = doc(collectionRef);
         const fileData = {
+            id: newDocRef.id,
             fileName: finalFileName,
             fileType: 'application/pdf',
             fileSize: uploadTask.metadata.size || 0,
@@ -128,9 +131,7 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
             userId,
         };
 
-        const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
-        
-        addDoc(collectionRef, fileData)
+        setDoc(newDocRef, fileData)
           .then(() => {
             toast({
                 title: 'نجح الرفع!',
@@ -147,7 +148,7 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
             errorEmitter.emit(
               'permission-error',
               new FirestorePermissionError({
-                path: collectionRef.path,
+                path: newDocRef.path,
                 operation: 'create',
                 requestResourceData: fileData,
               })

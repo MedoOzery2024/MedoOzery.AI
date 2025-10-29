@@ -14,9 +14,9 @@ import { transcribe, summarizeTranscribedText } from '@/ai/flows/transcribe';
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable'; // Ensure this is imported for auto-table functionality
 import { saveAs } from 'file-saver';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useFirestore, useUser } from '@/firebase';
-import { addDoc, collection, doc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -178,7 +178,9 @@ export function VoiceTranscription() {
         const downloadURL = await getDownloadURL(storageRef);
 
         const collectionRef = collection(firestore, `users/${user.uid}/uploadedFiles`);
+        const newDocRef = doc(collectionRef);
         const fileData = {
+          id: newDocRef.id,
           fileName: `${audioFileName}.webm`,
           fileType: 'audio/webm',
           fileSize: audioBlob.size,
@@ -186,7 +188,7 @@ export function VoiceTranscription() {
           storageLocation: downloadURL,
           userId: user.uid,
         };
-        addDoc(collectionRef, fileData)
+        setDoc(newDocRef, fileData)
           .then(() => {
             toast({
                 title: 'تم الحفظ بنجاح',
@@ -204,7 +206,7 @@ export function VoiceTranscription() {
             errorEmitter.emit(
               'permission-error',
               new FirestorePermissionError({
-                path: collectionRef.path,
+                path: newDocRef.path,
                 operation: 'create',
                 requestResourceData: fileData,
               })

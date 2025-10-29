@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import {
   getStorage,
   ref,
@@ -85,7 +85,7 @@ export function FileUploader({ userId }: FileUploaderProps) {
           () => {
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
               const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
-              const newDocRef = doc(collectionRef); // Create a new doc with a generated ID
+              const newDocRef = doc(collectionRef); 
               
               const fileData = {
                 id: newDocRef.id,
