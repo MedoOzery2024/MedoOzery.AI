@@ -117,7 +117,7 @@ export function HomePageContent() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="pt-2 pb-6 px-6">
-                      <ImageToPdfConverter userId={user.uid} />
+                      <ImageToPdfConverter />
                     </div>
                   </AccordionContent>
                 </div>

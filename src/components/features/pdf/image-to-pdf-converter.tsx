@@ -1,36 +1,21 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useFirestore } from '@/firebase';
-import { collection, doc, setDoc } from 'firebase/firestore';
-import {
-  getStorage,
-  ref,
-  uploadString,
-  getDownloadURL,
-} from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { ImageUp, FileSignature, Loader2, X, Download } from 'lucide-react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { jsPDF } from 'jspdf';
 import { saveAs } from 'file-saver';
 import Image from 'next/image';
 
-interface ImageToPdfConverterProps {
-  userId: string;
-}
-
-export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
+export function ImageToPdfConverter() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [pdfFileName, setPdfFileName] = useState('');
   const [isConverting, setIsConverting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const firestore = useFirestore();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,8 +42,8 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
     setSelectedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleConvertAndUpload = async () => {
-    if (selectedImages.length === 0 || !pdfFileName.trim() || !firestore || !userId) {
+  const handleConvertAndDownload = async () => {
+    if (selectedImages.length === 0 || !pdfFileName.trim()) {
         toast({
             variant: 'destructive',
             title: 'معلومات ناقصة',
@@ -94,7 +79,7 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
 
                         if (i > 0) doc.addPage();
                         doc.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
-                        setProgress(Math.round(((i + 1) / selectedImages.length) * 50));
+                        setProgress(Math.round(((i + 1) / selectedImages.length) * 100));
                         resolve();
                     };
                 };
@@ -103,64 +88,17 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
         }
 
         const pdfDataUri = doc.output('datauristring');
-        
-        // --- Download ---
         const finalFileName = `${pdfFileName.trim()}.pdf`;
         saveAs(pdfDataUri, finalFileName);
-        toast({ title: 'اكتمل التحميل', description: `تم تنزيل ملف "${finalFileName}" إلى جهازك.` });
-
-        // --- Upload to Firebase ---
-        setProgress(75);
-        toast({ title: 'بدء الرفع', description: 'جارٍ رفع الملف إلى الموقع...' });
-        const storage = getStorage();
-        const storagePath = `user-uploads/${userId}/pdf/${finalFileName}`;
-        const storageRef = ref(storage, storagePath);
-
-        const uploadTask = await uploadString(storageRef, pdfDataUri, 'data_url');
-        const downloadURL = await getDownloadURL(uploadTask.ref);
         
-        const collectionRef = collection(firestore, `users/${userId}/uploadedFiles`);
-        const newDocRef = doc(collectionRef);
-        const fileData = {
-            id: newDocRef.id,
-            fileName: finalFileName,
-            fileType: 'application/pdf',
-            fileSize: uploadTask.metadata.size || 0,
-            uploadDate: new Date().toISOString(),
-            storageLocation: downloadURL,
-            userId,
-        };
-
-        setDoc(newDocRef, fileData)
-          .then(() => {
-            toast({
-                title: 'نجح الرفع!',
-                description: `تم حفظ ملف "${finalFileName}" في حسابك.`,
-            });
-          })
-          .catch((error) => {
-            console.error("Firestore Error:", error);
-            toast({
-              variant: "destructive",
-              title: "خطأ في قاعدة البيانات",
-              description: "لم نتمكن من حفظ معلومات الملف. قد تكون هناك مشكلة في الصلاحيات.",
-            });
-            errorEmitter.emit(
-              'permission-error',
-              new FirestorePermissionError({
-                path: newDocRef.path,
-                operation: 'create',
-                requestResourceData: fileData,
-              })
-            );
-          });
+        toast({ title: 'اكتمل التحويل', description: `تم تنزيل ملف "${finalFileName}" إلى جهازك بنجاح.` });
 
     } catch (error: any) {
-        console.error("Conversion or Upload Error:", error);
+        console.error("Conversion Error:", error);
         toast({
             variant: 'destructive',
             title: 'حدث خطأ',
-            description: error.message || 'فشل تحويل الصور أو رفع الملف.',
+            description: error.message || 'فشل تحويل الصور إلى PDF.',
         });
     } finally {
         setIsConverting(false);
@@ -217,16 +155,16 @@ export function ImageToPdfConverter({ userId }: ImageToPdfConverterProps) {
         {isConverting && <Progress value={progress} className="w-full h-2" />}
 
         {selectedImages.length > 0 && (
-            <Button onClick={handleConvertAndUpload} disabled={isConverting || !pdfFileName.trim()}>
+            <Button onClick={handleConvertAndDownload} disabled={isConverting || !pdfFileName.trim()}>
                 {isConverting ? (
                     <>
                         <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        {progress < 50 ? 'جارٍ التحويل...' : 'جارٍ الرفع...'}
+                        {'جارٍ التحويل...'}
                     </>
                 ) : (
                     <>
                         <Download className="ml-2 h-4 w-4" />
-                        تحويل، حفظ، وتنزيل
+                        تحويل وتنزيل
                     </>
                 )}
             </Button>
