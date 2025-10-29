@@ -69,7 +69,9 @@ export function FileUploader({ userId }: FileUploaderProps) {
             );
             setUploadProgress(prev => {
                 const newProgress = [...prev];
-                newProgress[index] = { ...newProgress[index], progress: prog };
+                if (newProgress[index]) {
+                  newProgress[index] = { ...newProgress[index], progress: prog };
+                }
                 return newProgress;
             });
           },
