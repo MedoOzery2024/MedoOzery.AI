@@ -61,7 +61,7 @@ Attached File:
 {{/if}}
 
 Instructions:
-- Generate exactly {{questionCount}} questions.
+- Generate {{questionCount}} questions.
 - The difficulty of the questions should be: {{difficulty}}.
 - The entire output must be in {{#if isEnglish}}English{{else}}Arabic{{/if}}.
 
@@ -88,6 +88,11 @@ const generateQuestionsFlow = ai.defineFlow(
   async (input) => {
     const isEnglish = input.language === 'en';
     const isStatic = input.questionType === 'static';
+    
+    const promptParts = [
+        prompt({ ...input, isEnglish, isStatic })
+    ];
+
     const { output } = await prompt({ ...input, isEnglish, isStatic });
     if (!output) {
         return { staticQuestions: [], interactiveQuestions: [] };
