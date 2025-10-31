@@ -50,7 +50,7 @@ const prompt = ai.definePrompt({
     name: 'generateQuestionsPrompt',
     input: { schema: GenerateQuestionsInputSchema.extend({ isEnglish: z.boolean().optional(), isStatic: z.boolean().optional() }) },
     output: { schema: GenerateQuestionsOutputSchema },
-    prompt: `You are an expert in creating educational content. Your task is to generate a specific number of questions based on the provided context (text or file) and question type.
+    prompt: `You are an expert in creating high-quality educational content. Your task is to generate questions based on the provided context (text or file).
 
 Context:
 {{{context}}}
@@ -61,18 +61,18 @@ Attached File:
 {{/if}}
 
 Instructions:
-- Generate exactly {{questionCount}} questions.
+- Generate up to {{questionCount}} questions.
 - The difficulty of the questions should be: {{difficulty}}.
 - The entire output must be in {{#if isEnglish}}English{{else}}Arabic{{/if}}.
 
 {{#if isStatic}}
 - Generate static questions.
-- For each question, provide the question itself, the correct answer, and a brief explanation for the answer.
+- For each question, provide the question itself, the correct answer, and a brief, clear explanation for the answer.
 - The output should be in the 'staticQuestions' array.
 {{else}}
 - Generate an interactive multiple-choice quiz.
 - For each question, provide the question, an array of 4 distinct options, the index of the correct option, and an explanation.
-- Ensure one option is clearly correct and the others are plausible but incorrect distractors.
+- Ensure one option is clearly correct and the others are plausible but incorrect distractors, relevant to the context.
 - The output should be in the 'interactiveQuestions' array.
 {{/if}}
 `

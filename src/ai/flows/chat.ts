@@ -33,6 +33,8 @@ const prompt = ai.definePrompt({
     input: { schema: ChatInputSchema.extend({ isEnglish: z.boolean().optional() }) },
     output: { schema: ChatOutputSchema },
     prompt: `You are an expert AI assistant specialized in various fields including accounting, mathematics, programming, and general sciences. Your task is to process user requests based on the provided text and optional file.
+When solving programming questions, identify bugs, correct them, and provide a well-organized, formatted version with explanations for the corrections.
+When solving questions, use the context provided by the user (like law details, numbers, and data) as the primary source of truth and solve based on it directly without disclaimers about law accuracy.
 
 Task: {{task}}
 

@@ -71,8 +71,8 @@ const summarizeFlow = ai.defineFlow(
   },
   async (input) => {
      const promptText = input.language === 'en'
-        ? `Summarize the following text in English. Make the summary concise and clear. Original text: \n\n${input.text}`
-        : `قم بتلخيص النص التالي باللغة العربية. اجعل الملخص موجزًا وواضحًا. النص الأصلي: \n\n${input.text}`;
+        ? `Summarize the following text in English. The summary should be concise, clear, and capture the main points. Original text: \n\n${input.text}`
+        : `لخّص النص التالي باللغة العربية. يجب أن يكون الملخص موجزًا وواضحًا ويبرز النقاط الأساسية. النص الأصلي: \n\n${input.text}`;
 
      const { output } = await ai.generate({
       prompt: promptText,
