@@ -61,7 +61,7 @@ Attached File:
 {{/if}}
 
 Instructions:
-- Generate up to {{questionCount}} questions.
+- Generate exactly {{questionCount}} questions.
 - The difficulty of the questions should be: {{difficulty}}.
 - The entire output must be in {{#if isEnglish}}English{{else}}Arabic{{/if}}.
 
